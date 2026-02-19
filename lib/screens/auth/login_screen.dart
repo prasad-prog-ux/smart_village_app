@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
+import 'dashboard_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -138,18 +140,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             style:
                             _buttonStyle(),
                             onPressed: () {
-                              if (_formKey
-                                  .currentState!
-                                  .validate()) {
-                                ScaffoldMessenger.of(
-                                    context)
-                                    .showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          "Login Successful")),
+                              if (_formKey.currentState!.validate()) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const DashboardScreen(),
+                                  ),
                                 );
                               }
                             },
+
                             child:
                             const Text("Login"),
                           ),

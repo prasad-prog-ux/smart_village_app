@@ -179,19 +179,19 @@ class _SignupScreenState extends State<SignupScreen> {
                               style:
                               _buttonStyle(),
                               onPressed: () {
-                                if (_formKey
-                                    .currentState!
-                                    .validate()) {
-                                  ScaffoldMessenger.of(
-                                      context)
-                                      .showSnackBar(
+                                if (_formKey.currentState!.validate()) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text(
-                                          "Account Created Successfully"),
+                                      content: Text("Account Created Successfully"),
                                     ),
                                   );
+
+                                  Future.delayed(const Duration(seconds: 1), () {
+                                    Navigator.pop(context);
+                                  });
                                 }
                               },
+
                               child:
                               const Text("Sign Up"),
                             ),
