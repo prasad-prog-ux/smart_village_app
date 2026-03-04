@@ -13,43 +13,57 @@ class _SchemesTabState extends State<SchemesTab> {
 
   String selectedCategory = "All";
   String searchQuery = "";
+  Set<String> bookmarkedSchemes = {};
+  Set<int> expandedIndex = {};
 
   final List<Map<String, String>> schemes = [
 
     {
       "title": "PM Kisan Samman Nidhi",
       "category": "Agriculture",
-      "description": "Financial support for farmers.",
-      "eligibility": "Small & marginal farmers",
+      "description": "Direct income support of ₹6000 per year to eligible farmers.",
+      "eligibility": "Small & marginal landholding farmers",
       "url": "https://pmkisan.gov.in/",
-      "icon": "leaf.svg"
+      "icon": "agriculture.svg",
+      "documents": "Aadhaar Card, Land Ownership Documents, Bank Passbook",
+      "mode": "Online Portal & CSC Centers",
+      "contact": "PM Kisan Helpline: 155261"
     },
 
     {
       "title": "Ayushman Bharat Yojana",
       "category": "Health",
-      "description": "Free health insurance up to ₹5 lakh.",
-      "eligibility": "Eligible low-income families",
+      "description": "Health insurance coverage up to ₹5 lakh per family annually.",
+      "eligibility": "Eligible families listed in SECC database",
       "url": "https://pmjay.gov.in/",
-      "icon": "heart.svg"
+      "icon": "heart.svg",
+      "documents": "Aadhaar Card, Ration Card, Registered Mobile Number",
+      "mode": "Hospital Enrollment & Online Portal",
+      "contact": "Ayushman Helpline: 14555"
     },
 
     {
       "title": "PM Scholarship Scheme",
       "category": "Education",
-      "description": "Scholarship for higher studies.",
-      "eligibility": "Students meeting income criteria",
-      "url": "https://www.aicte-india.org/schemes/students-development-schemes/PMSSS",
-      "icon": "academic-cap.svg"
+      "description": "Financial support for students pursuing higher education.",
+      "eligibility": "Students meeting income and academic criteria",
+      "url": "https://www.aicte-india.org/",
+      "icon": "academic-cap.svg",
+      "documents": "Income Certificate, Previous Academic Marksheet, Aadhaar Card",
+      "mode": "Online Application Only",
+      "contact": "AICTE Support: 011-29581000"
     },
 
     {
       "title": "Beti Bachao Beti Padhao",
       "category": "Women",
-      "description": "Support & empowerment for girls.",
-      "eligibility": "Girl child welfare programs",
-      "url": "https://wcd.nic.in/bbbp-schemes",
-      "icon": "user-group.svg"
+      "description": "Scheme promoting education and welfare of the girl child.",
+      "eligibility": "Girl child & eligible families",
+      "url": "https://wcd.nic.in/",
+      "icon": "user-group.svg",
+      "documents": "Birth Certificate of Child, Aadhaar of Parents",
+      "mode": "Through District Welfare Office",
+      "contact": "Women Helpline: 181"
     },
   ];
 
@@ -91,14 +105,41 @@ class _SchemesTabState extends State<SchemesTab> {
                 bottomRight: Radius.circular(30),
               ),
             ),
-            child: const Text(
-              "Government Schemes",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Government Schemes",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    final savedList = schemes
+                        .where((scheme) =>
+                        bookmarkedSchemes.contains(scheme["title"]))
+                        .toList();
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SavedSchemesScreen(
+                          savedSchemes: savedList,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Icon(
+                    Icons.bookmark,
+                    color: Colors.white,
+                  ),
+                )
+              ],
             ),
+
           ),
 
           const SizedBox(height: 20),
@@ -160,7 +201,11 @@ class _SchemesTabState extends State<SchemesTab> {
 
                 final scheme = filteredSchemes[index];
 
-                return Container(
+                return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    margin: const EdgeInsets.only(bottom: 15),
+                    child: Container(
                   margin: const EdgeInsets.only(bottom: 15),
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
@@ -194,6 +239,23 @@ class _SchemesTabState extends State<SchemesTab> {
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15),
                             ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                if (bookmarkedSchemes.contains(scheme["title"])) {
+                                  bookmarkedSchemes.remove(scheme["title"]);
+                                } else {
+                                  bookmarkedSchemes.add(scheme["title"]!);
+                                }
+                              });
+                            },
+                            child: Icon(
+                              bookmarkedSchemes.contains(scheme["title"])
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              color: const Color(0xFF1B5E20),
+                            ),
                           )
                         ],
                       ),
@@ -206,6 +268,50 @@ class _SchemesTabState extends State<SchemesTab> {
                             fontSize: 13,
                             color: Colors.black87),
                       ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (expandedIndex.contains(index)) {
+                              expandedIndex.remove(index);
+                            } else {
+                              expandedIndex.add(index);
+                            }
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            const Text(
+                              "View Details",
+                              style: TextStyle(
+                                color: Color(0xFF1B5E20),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Icon(
+                              expandedIndex.contains(index)
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: const Color(0xFF1B5E20),
+                            )
+                          ],
+                        ),
+                      ),
+
+                      if (expandedIndex.contains(index))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("• Required Documents: ${scheme["documents"]}"),
+                              const SizedBox(height: 4),
+                              Text("• Application Mode: ${scheme["mode"]}"),
+                              const SizedBox(height: 4),
+                              Text("• Contact: ${scheme["contact"]}"),
+                            ],
+                          ),
+                        ),
 
                       const SizedBox(height: 6),
 
@@ -220,10 +326,12 @@ class _SchemesTabState extends State<SchemesTab> {
 
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1B5E20),
-                          minimumSize: const Size(double.infinity, 40),
+                          backgroundColor: const Color(0xFF00C853),
+                          elevation: 4, // shadow effect
+                          shadowColor: Colors.black26,
+                          minimumSize: const Size(double.infinity, 45),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         onPressed: () => openUrl(scheme["url"]!),
@@ -233,10 +341,17 @@ class _SchemesTabState extends State<SchemesTab> {
                           colorFilter: const ColorFilter.mode(
                               Colors.white, BlendMode.srcIn),
                         ),
-                        label: const Text("Apply Now"),
+                        label: const Text("Apply Now"
+                        ,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          letterSpacing: 0.5,
+                        ),),
                       )
                     ],
                   ),
+                ),
                 );
               },
             ),
@@ -270,6 +385,53 @@ class _SchemesTabState extends State<SchemesTab> {
             fontSize: 12,
           ),
         ),
+      ),
+    );
+  }
+}
+class SavedSchemesScreen extends StatelessWidget {
+  final List<Map<String, String>> savedSchemes;
+
+  const SavedSchemesScreen({super.key, required this.savedSchemes});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1B5E20),
+        title: const Text("Saved Schemes"),
+      ),
+      body: savedSchemes.isEmpty
+          ? const Center(
+        child: Text("No saved schemes yet."),
+      )
+          : ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: savedSchemes.length,
+        itemBuilder: (_, index) {
+          final scheme = savedSchemes[index];
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 15),
+            child: Padding(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    scheme["title"]!,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(scheme["description"]!),
+                  const SizedBox(height: 8),
+                  Text("Eligibility: ${scheme["eligibility"]}"),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

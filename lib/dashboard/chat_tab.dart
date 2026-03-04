@@ -81,6 +81,19 @@ class _ChatCard extends StatelessWidget {
     required this.members,
     this.isAI = false,
   });
+  String getGroupIcon(String title, bool isAI) {
+    if (isAI) {
+      return "assets/icons/sparkles.svg";
+    } else if (title == "Farmer Group") {
+      return "assets/icons/tractor.svg";
+    } else if (title == "Youth Network") {
+      return "assets/icons/trophy.svg";
+    } else if (title == "Health Updates") {
+      return "assets/icons/cross.svg";
+    } else {
+      return "assets/icons/diversity.svg";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,25 +123,16 @@ class _ChatCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-
             CircleAvatar(
               radius: 26,
               backgroundColor: const Color(0xFFE8F5E9),
-              child: isAI
-                  ? SvgPicture.asset(
-                "assets/icons/sparkles.svg",
-                height: 20,
-                colorFilter: const ColorFilter.mode(
-                    Color(0xFF1B5E20), BlendMode.srcIn),
-              )
-                  : SvgPicture.asset(
-                "assets/icons/users.svg",
-                height: 20,
+              child: SvgPicture.asset(
+                getGroupIcon(title, isAI),
+                height: 22,
                 colorFilter: const ColorFilter.mode(
                     Color(0xFF1B5E20), BlendMode.srcIn),
               ),
             ),
-
             const SizedBox(width: 15),
 
             Expanded(
@@ -171,6 +175,9 @@ class ChatDetailScreen extends StatefulWidget {
 }
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
+  bool isTyping = false;
+  String lastTopic = "";
+  List<String> conversationLog = [];
 
   final List<Map<String, dynamic>> messages = [];
   final TextEditingController controller = TextEditingController();
@@ -182,83 +189,158 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     if (widget.groupName == "Farmers Group") {
       messages.addAll([
-        {"text": "Fertilizer distribution starts tomorrow.", "isMe": false, "isAdmin": true},
-        {"text": "Anyone facing irrigation issues?", "isMe": false, "isAdmin": false},
+        {
+          "text": "📢 Notice: Fertilizer distribution will begin tomorrow at 9:00 AM at the Agriculture Center.",
+          "isMe": false,
+          "isAdmin": true
+        },
+        {
+          "text": "Please carry your ID proof while collecting supplies.",
+          "isMe": false,
+          "isAdmin": false
+        },
       ]);
     }
 
     if (widget.groupName == "Youth Network") {
       messages.addAll([
-        {"text": "Football match this Sunday ⚽", "isMe": false, "isAdmin": true},
-        {"text": "Practice at 4 PM today!", "isMe": false, "isAdmin": false},
+        {
+          "text": "⚽ Football tournament scheduled this Sunday at 5 PM.",
+          "isMe": false,
+          "isAdmin": true
+        },
+        {
+          "text": "All participants must register before Saturday evening.",
+          "isMe": false,
+          "isAdmin": false
+        },
       ]);
     }
 
     if (widget.groupName == "Health Updates") {
       messages.addAll([
-        {"text": "Vaccination camp on Friday.", "isMe": false, "isAdmin": true},
-        {"text": "Free health check-up available.", "isMe": false, "isAdmin": false},
+        {
+          "text": "🏥 Free health check-up camp on Friday at Community Hall.",
+          "isMe": false,
+          "isAdmin": true
+        },
+        {
+          "text": "Vaccination and general consultation will be available.",
+          "isMe": false,
+          "isAdmin": false
+        },
       ]);
     }
 
     if (widget.isAI) {
       messages.add({
-        "text": "Hello! I am your Village AI Assistant. Ask me about water, electricity, road, health etc.",
+        "text": "Hello 👋 I am your Village AI Assistant.\n\nYou can ask me about:\n• Water Supply\n• Electricity\n• Roads\n• Health Camps\n• Farming Updates",
         "isMe": false,
         "isAdmin": true
       });
     }
   }
 
-  String aiReply(String text) {
-    text = text.toLowerCase();
 
-    // Greetings
+  String aiReply(String text) {
+    text = text.toLowerCase().trim();
+    conversationLog.add(text);
+
+    // ===== GREETING =====
     if (text.contains("hello") ||
         text.contains("hi") ||
-        text.contains("namaste")) {
-      return "Hello 👋\nHow can I help you today? You can ask about water supply, electricity, roads, health camps or village updates.";
+        text.contains("hey")) {
+      return "Hello 👋\n\nI’m your Village AI Assistant. I can help you with water supply, electricity, road maintenance, health services, and farming support.\n\nHow may I assist you today?";
     }
 
-    // Water related
-    else if (text.contains("water") ||
-        text.contains("supply")) {
-      return "💧 Water supply timing is 7 AM - 9 AM daily.\n\nAre you facing low pressure or no water in your area?";
+    // ===== SUMMARY MODE =====
+    if (text.contains("summary") || text.contains("summarize")) {
+      return "📋 Conversation Summary:\n\n• Topic discussed: $lastTopic\n• Messages exchanged: ${conversationLog.length}\n\nIf your issue is still unresolved, I recommend submitting a complaint in the Complaint section of the app for proper tracking.";
     }
 
-    // Electricity related
-    else if (text.contains("electricity") ||
+    // ===== WATER =====
+    if (text.contains("water") || text.contains("pani")) {
+      lastTopic = "Water Supply";
+
+      return "💧 Water Supply Information:\n\nThe regular timing is 7:00 AM to 9:00 AM daily.\n\nAre you experiencing low pressure, irregular timing, or no water at all?";
+    }
+
+    if (lastTopic == "Water Supply" &&
+        (text.contains("no water") || text.contains("not coming"))) {
+      return "I understand how inconvenient it is to have no water supply.\n\nIf the issue has continued for several hours, I recommend registering a complaint in the Complaint section so it can be tracked properly.";
+    }
+
+    if (lastTopic == "Water Supply" &&
+        text.contains("low")) {
+      return "Low water pressure is usually caused by pipeline leakage or peak hour consumption.\n\nIf this is happening frequently, submitting a complaint will help the maintenance team investigate.";
+    }
+
+    // ===== ELECTRICITY =====
+    if (text.contains("electricity") ||
         text.contains("power") ||
         text.contains("light")) {
-      return "⚡ Electricity maintenance is scheduled on Sunday at 2 PM.\n\nIs there a power cut currently in your area?";
+      lastTopic = "Electricity";
+
+      return "⚡ Electricity Information:\n\nScheduled maintenance is on Sunday at 2 PM.\n\nAre you facing a complete power cut, voltage fluctuation, or frequent interruptions?";
     }
 
-    // Road issues
-    else if (text.contains("road") ||
-        text.contains("repair") ||
-        text.contains("pothole")) {
-      return "🛣️ Road repair work will start next week near the main market.\n\nCan you tell me the exact location of the issue?";
+    if (lastTopic == "Electricity" &&
+        (text.contains("no power") || text.contains("power cut"))) {
+      return "A prolonged power outage may indicate transformer or line issues.\n\nIf it has been more than 2 hours, I suggest registering a complaint in the Complaint tab so the issue can be escalated.\n\nHow long has the outage lasted?";
     }
 
-    // Health
-    else if (text.contains("health") ||
+    if (lastTopic == "Electricity" &&
+        text.contains("voltage")) {
+      return "Voltage fluctuation can damage appliances.\n\nPlease avoid using heavy devices temporarily.\n\nIf the issue continues, submitting a complaint would be advisable.";
+    }
+
+    // ===== HEALTH =====
+    if (text.contains("health") ||
+        text.contains("doctor") ||
         text.contains("hospital") ||
-        text.contains("camp") ||
-        text.contains("doctor")) {
-      return "🏥 Health camp is scheduled on Friday at 10 AM in the community hall.\n\nWould you like details about vaccination or general check-up?";
+        text.contains("camp")) {
+      lastTopic = "Health Services";
+
+      return "🏥 Health Services Update:\n\nA free health camp is scheduled this Friday at 10 AM in the Community Hall.\n\nAre you looking for general consultation or a specific treatment?";
     }
 
-    // Farming
-    else if (text.contains("fertilizer") ||
+    if (lastTopic == "Health Services" &&
+        text.contains("doctor not")) {
+      return "If the doctor is unavailable, it might be due to field duty or emergency assignments.\n\nYou may visit during the next scheduled camp or register a complaint for follow-up.\n\nWould you like more details?";
+    }
+
+    // ===== ROAD =====
+    if (text.contains("road") ||
+        text.contains("pothole") ||
+        text.contains("repair")) {
+      lastTopic = "Road Maintenance";
+
+      return "🛣 Road Maintenance Update:\n\nRepair work near the main market area is planned for next week.\n\nIf you are reporting a pothole or safety hazard, I recommend registering a complaint with the exact location.\n\nWould you like to proceed?";
+    }
+
+    // ===== FARMING =====
+    if (text.contains("fertilizer") ||
         text.contains("crop") ||
         text.contains("farm")) {
-      return "🌾 Fertilizer distribution starts tomorrow from 9 AM at the agriculture center.\n\nWhich crop are you growing this season?";
+      lastTopic = "Farming Support";
+
+      return "🌾 Farming Support Information:\n\nFertilizer distribution begins tomorrow at 9 AM at the Agriculture Center.\n\nAre you asking about availability, crop advice, or pricing details?";
     }
 
-    // Default fallback
-    else {
-      return "I'm your Village AI Assistant 🤖\n\nYou can ask me about:\n• Water supply\n• Electricity\n• Roads\n• Health camps\n• Farming updates\n\nHow can I assist you today?";
+    // ===== EMERGENCY DETECTION =====
+    if (text.contains("spark") ||
+        text.contains("fire") ||
+        text.contains("danger")) {
+      return "⚠️ This appears to be a potential safety hazard.\n\nPlease stay away from the affected area immediately.\n\nI strongly recommend registering an urgent complaint in the Complaint section for immediate attention.";
     }
+
+    // ===== THANK YOU =====
+    if (text.contains("thank")) {
+      return "You're welcome 😊\n\nIf you need any further assistance regarding village services, feel free to ask anytime.";
+    }
+
+    // ===== DEFAULT SMART RESPONSE =====
+    return "Thank you for your message.\n\nTo assist you accurately, could you please provide more specific details about your concern?";
   }
   void sendMessage() {
     if (controller.text.trim().isEmpty) return;
@@ -266,14 +348,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     String userMessage = controller.text.trim();
 
     setState(() {
-      messages.add({"text": userMessage, "isMe": true, "isAdmin": false});
+      messages.add({
+        "text": userMessage,
+        "isMe": true,
+        "isAdmin": false
+      });
     });
 
     controller.clear();
 
     if (widget.isAI) {
-      Future.delayed(const Duration(milliseconds: 600), () {
+
+      setState(() {
+        isTyping = true;
+      });
+
+      Future.delayed(const Duration(seconds: 1), () {
+
         setState(() {
+          isTyping = false;
           messages.add({
             "text": aiReply(userMessage),
             "isMe": false,
@@ -281,13 +374,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           });
         });
 
-        scrollController.animateTo(
-          scrollController.position.maxScrollExtent + 100,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        if (scrollController.hasClients) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+
       });
     }
+
   }
 
   @override
@@ -296,7 +393,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       backgroundColor: const Color(0xFFF2F5F9),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B5E20),
-        title: Text(widget.groupName),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.groupName),
+            if (widget.isAI)
+              const Text(
+                "Online",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.greenAccent,
+                ),
+              ),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -305,8 +415,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: ListView.builder(
               controller: scrollController,
               padding: const EdgeInsets.all(15),
-              itemCount: messages.length,
+              itemCount: messages.length + (isTyping ? 1 : 0),
               itemBuilder: (_, index) {
+                if (index >= messages.length) {
+                  return const Padding(
+                    padding: EdgeInsets.only(left: 10, bottom: 10),
+                    child: Text(
+                      "AI is typing...",
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                }
                 final msg = messages[index];
 
                 return Align(
@@ -393,7 +515,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: SvgPicture.asset(
-                      "assets/icons/paper-airplane.svg",
+                      "assets/icons/send.svg",
                       height: 18,
                       colorFilter: const ColorFilter.mode(
                           Colors.white, BlendMode.srcIn),

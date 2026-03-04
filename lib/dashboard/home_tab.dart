@@ -56,11 +56,20 @@ class _HomeTabState extends State<HomeTab> {
                 image: DecorationImage(
                   image: AssetImage("assets/images/hero.png"),
                   fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+
                 ),
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2E7D32).withOpacity(0.55),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color.fromRGBO(0, 0, 0, 0.5),
+                      Color.fromRGBO(0, 100, 60, 0.45),
+                    ],
+                  ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(40),
                     bottomRight: Radius.circular(40),
@@ -128,10 +137,10 @@ class _HomeTabState extends State<HomeTab> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 22, horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withOpacity(0.25),
                         ),
                       ),
                       child: Row(
@@ -215,13 +224,16 @@ class _HomeTabState extends State<HomeTab> {
                     title: "Village Fair This Weekend",
                     date: "10 Feb 2026",
                     category: "Notice",
+                    screen: PanchayatNoticesScreen(),
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
+
                   _UpdateCard(
                     icon: "assets/icons/droplet.svg",
                     title: "New Water Supply Schedule",
                     date: "8 Feb 2026",
                     category: "Water",
+                    screen: WaterScheduleScreen(),
                   ),
                 ],
               ),
@@ -232,57 +244,64 @@ class _HomeTabState extends State<HomeTab> {
             /// ================= SERVICES GRID =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                childAspectRatio: 1.05,
-                children: const [
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  int crossAxisCount = constraints.maxWidth > 700 ? 3 : 2;
 
-                  _FeatureCard(
-                    iconPath: "assets/icons/phone.svg",
-                    label: "Directory",
-                    subtitle: "Village Contacts",
-                    screen: DirectoryScreen(),
-                  ),
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: 6,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 0.85, // 👈 IMPORTANT
+                    ),
+                    itemBuilder: (context, index) {
+                      final items = [
+                        _FeatureCard(
+                          iconPath: "assets/icons/phone.svg",
+                          label: "Directory",
+                          subtitle: "Village Contacts",
+                          screen: const DirectoryScreen(),
+                        ),
+                        _FeatureCard(
+                          iconPath: "assets/icons/droplet.svg",
+                          label: "Water Schedule",
+                          subtitle: "Supply Timing",
+                          screen: const WaterScheduleScreen(),
+                        ),
+                        _FeatureCard(
+                          iconPath: "assets/icons/bolt.svg",
+                          label: "Electricity",
+                          subtitle: "Outage Updates",
+                          screen: const ElectricityStatusScreen(),
+                        ),
+                        _FeatureCard(
+                          iconPath: "assets/icons/megaphone.svg",
+                          label: "Notices",
+                          subtitle: "Panchayat Updates",
+                          screen: const PanchayatNoticesScreen(),
+                        ),
+                        _FeatureCard(
+                          iconPath: "assets/icons/bus.svg",
+                          label: "Bus Timetable",
+                          subtitle: "Live Tracking",
+                          screen: const BusTimetableScreen(),
+                        ),
+                        _FeatureCard(
+                          iconPath: "assets/icons/heart.svg",
+                          label: "Health Camps",
+                          subtitle: "Medical Events",
+                          screen: const HealthCampsScreen(),
+                        ),
+                      ];
 
-                  _FeatureCard(
-                    iconPath: "assets/icons/droplet.svg",
-                    label: "Water Schedule",
-                    subtitle: "Supply Timing",
-                    screen: WaterScheduleScreen(),
-                  ),
-
-                  _FeatureCard(
-                    iconPath: "assets/icons/bolt.svg",
-                    label: "Electricity",
-                    subtitle: "Outage Updates",
-                    screen: ElectricityStatusScreen(),
-                  ),
-
-                  _FeatureCard(
-                    iconPath: "assets/icons/megaphone.svg",
-                    label: "Notices",
-                    subtitle: "Panchayat Updates",
-                    screen: PanchayatNoticesScreen(),
-                  ),
-
-                  _FeatureCard(
-                    iconPath: "assets/icons/bus.svg",
-                    label: "Bus Timetable",
-                    subtitle: "Live Tracking",
-                    screen: BusTimetableScreen(),
-                  ),
-
-                  _FeatureCard(
-                    iconPath: "assets/icons/heart.svg",
-                    label: "Health Camps",
-                    subtitle: "Medical Events",
-                    screen: HealthCampsScreen(),
-                  ),
-                ],
+                      return items[index];
+                    },
+                  );
+                },
               ),
             ),
 
@@ -448,7 +467,7 @@ class _FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(24),
       onTap: () {
         Navigator.push(
           context,
@@ -457,126 +476,167 @@ class _FeatureCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFFFFF), Color(0xFFE8F5E9)],
-          ),
-          borderRadius: BorderRadius.circular(22),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.green.withAlpha(20),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: Colors.green.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             )
           ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(
-              iconPath,
-              height: 32,
-              colorFilter: const ColorFilter.mode(
-                Color(0xFF1B5E20),
-                BlendMode.srcIn,
+
+            /// ICON CIRCLE
+            Container(
+              height: 64,
+              width: 64,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1B5E20).withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: SvgPicture.asset(
+                  iconPath,
+                  height: 28,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF1B5E20),
+                    BlendMode.srcIn,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600)),
+
+            const SizedBox(height: 18),
+
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
             const SizedBox(height: 6),
-            Text(subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey)),
+
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.grey,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-
 /// ================= UPDATE CARD =================
 class _UpdateCard extends StatelessWidget {
   final String icon;
   final String title;
   final String date;
   final String category;
+  final Widget screen;
 
   const _UpdateCard({
     required this.icon,
     required this.title,
     required this.date,
     required this.category,
+    required this.screen,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.green.withAlpha(15),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          SvgPicture.asset(
-            icon,
-            height: 22,
-            colorFilter: const ColorFilter.mode(
-              Color(0xFF1B5E20),
-              BlendMode.srcIn,
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => screen),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.withAlpha(15),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              icon,
+              height: 22,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF1B5E20),
+                BlendMode.srcIn,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1B5E20)
-                            .withAlpha(25),
-                        borderRadius:
-                        BorderRadius.circular(20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B5E20).withAlpha(25),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(category,
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF1B5E20))),
                       ),
-                      child: Text(category,
+                      const SizedBox(width: 10),
+                      Text(date,
                           style: const TextStyle(
                               fontSize: 11,
-                              color:
-                              Color(0xFF1B5E20))),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(date,
-                        style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey)),
-                  ],
-                ),
-              ],
+                              color: Colors.grey)),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios,
-              size: 14, color: Colors.grey),
-        ],
+
+            /// CLICKABLE ARROW
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => screen),
+                );
+              },
+              child: const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
